@@ -85,7 +85,7 @@ beetles <- data.frame(
 ## Gauss-Newton and Contour Plot
 ```{r gn, echo = TRUE, message = FALSE, warning=FALSE}
 library(pracma) ## gauss newton method
-library(plotly)
+library(plotly) ## plot contour
 t <- beetles$days
 b <- beetles$beetles
 N0 <- b[1]
@@ -109,7 +109,19 @@ contour(k, r, z, xlab = "k", ylab = "r", main = "contour plot")
 ```
 ## MLE
 ```{r mle, echo = TRUE, message = FALSE, warning=FALSE}
-
+logb <- log(b, base = exp(1))
+logb
+t
+llk <- function(x){
+  k <- x[1]
+  r <- x[2]
+  sigmasq <- x[3]
+  -sum(-(log(2 * pi * (sigmasq)) / 2 )- (logb - log((k * N0)/(N0 + (k - N0) * exp(-r * t)))) ^ 2 / (2 * (sigmasq)))
+}
+llk(c(1e3, .2, 1))
+rs <- optim(c(1000, 0.2, 1), llk, method = "BFGS", hessian = TRUE)
+rs
+solve(rs$hessian)
 ```
 # Reference {-}
 
