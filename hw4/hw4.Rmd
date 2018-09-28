@@ -1,0 +1,119 @@
+---
+title: "HW4"
+# subtitle: "possible subtitle goes here"
+author:
+  - Cheng Huang^[<email>; Ph.D. student at
+    Department of Statistics, University of Connecticut.]
+    
+date: "`r format(Sys.time(), '%d %B %Y')`"
+documentclass: article
+papersize: letter
+fontsize: 11pt
+bibliography: template.bib
+biblio-style: asa
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+always_allow_html: yes
+
+---
+
+# Many local maxima {#sec:P1}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+require(data.table)
+require(knitr)
+## require(animation)
+require(pracma) #NR
+require(ggplot2)
+x <- c(3.91, 4.85, 2.28, 4.06, 3.70, 4.04, 5.46, 3.53, 2.28, 1.96,
+       2.53, 3.88, 2.22, 3.47, 4.82, 2.46, 2.99, 2.54, 0.52)
+mean(x)
+## require(spuRs)  
+## fixedpoint ## from spuRs
+## require(copula)
+```
+## loglikihood
+```{r loglkh, echo = TRUE, message = FALSE, warning=FALSE}
+loglkh <- function(theta){
+  sum(log((1 - cos(x - theta))/(2 * pi), base = exp(1)))
+}
+loglikelihood <- Vectorize(loglkh)
+curve(loglikelihood, -pi, pi, xname = 'theta')
+```
+
+## MOM
+\[E(X|\theta) = \int_{x=0}^{2\pi}\frac{1-cos(x-\theta)}{2\pi}x dx=\int_{x=0}^{2\pi}\frac{x}{2\pi}dx-\frac{1}{2\pi}\int_{0}^{2\pi}xcos(x-\theta)dx=\pi-\frac{1}{2\pi}(xsin(x-\theta)+cos(x-\theta))|_{0}^{2\pi}\]
+\[=\pi-\frac{1}{2\pi}(-2\pi sin(\theta))=\pi + sin(\theta) = \bar{X} = 3.236842\]
+```{r mom, echo = TRUE, message = FALSE, warning=FALSE}
+asin(mean(x)-pi)
+```
+
+So $\theta = 0.09539407$.
+
+## MLE using Newton-Raphson
+```{r nr, echo = TRUE, message = FALSE, warning=FALSE}
+loglkh.1 <- function(theta){
+  sum(sin(theta-x)/(1-cos(theta-x)))
+}
+newtonRaphson(loglkh.1, asin(mean(x)-pi), dfun = NULL)$root
+
+```
+## start at -2.7 and 2.7
+```{r start, echo = TRUE, message = FALSE, warning=FALSE}
+newtonRaphson(loglkh.1, -2.7, dfun = NULL)$root
+newtonRaphson(loglkh.1, 2.7, dfun = NULL)$root
+
+```
+
+## repeat 200 using start values between -pi to pi
+```{r start2, echo = TRUE, message = FALSE, warning=FALSE}
+start <- seq(-pi, pi, length.out = 200)
+nr <- double(200)
+for (i in start){
+  nr[which(start == i)] <- newtonRaphson(loglkh.1, i, dfun = NULL)$root
+}
+nrtble <- data.table(start = start, MLE = nr)
+data.table(cn = names(nrtble), transpose(nrtble))
+```
+# Modeling beetle data
+```{r beetle, echo = TRUE, message = FALSE, warning=FALSE}
+beetles <- data.frame(
+    days    = c(0,  8,  28,  41,  63,  69,   97, 117,  135,  154),
+    beetles = c(2, 47, 192, 256, 768, 896, 1120, 896, 1184, 1024))
+```
+## Gauss-Newton and Contour Plot
+```{r gn, echo = TRUE, message = FALSE, warning=FALSE}
+library(pracma) ## gauss newton method
+library(plotly)
+t <- beetles$days
+b <- beetles$beetles
+N0 <- b[1]
+
+Nt <- function(x){
+  (x[1] * (N0) / (N0 + (x[1] - N0) * exp(-x[2] * t)) - b)
+}
+gaussNewton(c(1000, 1), Nt)
+
+ct <- function(k, r){
+  sum((k * (N0) / (N0 + (k - N0) * exp(-r * t)) - b)^2)
+}
+k <- seq(0, 2000, length.out = 1e4)
+r <- seq(0, 0.5, length.out = 1e2)
+z <- outer(k,
+           r,
+           Vectorize(ct)
+           )
+contour(k, r, z, xlab = "k", ylab = "r", main = "contour plot")
+
+```
+## MLE
+```{r mle, echo = TRUE, message = FALSE, warning=FALSE}
+
+```
+# Reference {-}
+
+https://stackoverflow.com/questions/19079152/contour-plot-of-a-custom-function-in-r
+[jun-yan/stat-5361]https://github.com/jun-yan/stat-5361 \
+
