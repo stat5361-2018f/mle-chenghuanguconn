@@ -12,11 +12,10 @@ fontsize: 11pt
 bibliography: template.bib
 biblio-style: asa
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 always_allow_html: yes
-
 ---
 
 # Many local maxima {#sec:P1}
