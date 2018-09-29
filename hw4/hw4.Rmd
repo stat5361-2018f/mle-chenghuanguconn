@@ -2,8 +2,7 @@
 title: "HW4"
 # subtitle: "possible subtitle goes here"
 author:
-  - Cheng Huang^[<email>; Ph.D. student at
-    Department of Statistics, University of Connecticut.]
+  - Cheng Huang 2658312
     
 date: "`r format(Sys.time(), '%d %B %Y')`"
 documentclass: article
@@ -74,6 +73,7 @@ for (i in start){
   nr[which(start == i)] <- newtonRaphson(loglkh.1, i, dfun = NULL)$root
 }
 nrtble <- data.table(start = start, MLE = nr)
+plot(nrtble$start, nrtble$MLE)
 data.table(cn = names(nrtble), transpose(nrtble))
 ```
 # Modeling beetle data
@@ -110,8 +110,6 @@ contour(k, r, z, xlab = "k", ylab = "r", main = "contour plot")
 ## MLE
 ```{r mle, echo = TRUE, message = FALSE, warning=FALSE}
 logb <- log(b, base = exp(1))
-logb
-t
 llk <- function(x){
   k <- x[1]
   r <- x[2]
